@@ -2,11 +2,13 @@ extern crate docopt;
 extern crate rustc_serialize;
 
 use std::collections::BTreeSet;
+use std::cmp;
 use std::env;
 use std::error;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::process;
 
 use docopt::Docopt;
 
@@ -24,7 +26,7 @@ const USAGE: &'static str = "
 Simple Tickets
 
 Usage:
-    stick <command> [args...]
+    stick <command> [<args>...]
     stick [options]
 
 Options:
@@ -43,16 +45,26 @@ Some common stick commands are (see all commands with --list):
 
 See 'stick help <command>' for more information on a specific command.
 ";
-const MODULE_DIR: &'static str = "/usr/lib/stick";
+
+const MODULE_DIR: &'static str = "/usr/lib/stick-modules";
+
 
 fn main() {
+    let ecode = execute_main(env::args());
+    process::exit(ecode);
+}
+
+fn execute_main<A, T>(args: A) -> i32
+    where A: IntoIterator<Item = T>,
+          T: AsRef<str>
+{
     let flags: Flags = Docopt::new(USAGE)
-        .and_then(|d| d.decode())
+        .and_then(|d| d.argv(args.into_iter()).decode())
         .unwrap_or_else(|e| e.exit());
 
     if flags.flag_version {
         println!("{}", version());
-        return;
+        return 0;
     }
 
     if flags.flag_list {
@@ -60,7 +72,40 @@ fn main() {
         for command in list_commands() {
             println!("    {}", command);
         }
-        return;
+        return 0;
+    }
+
+    let args = match &flags.arg_command[..] {
+        // For the commands `stick` and `stick help`, re-execute ourselves as
+        // `stick -h` so we can go through the normal process of printing the
+        // help message.
+        "" | "help" if flags.arg_args.is_empty() => {
+            let args = &["stick".to_string(), "-h".to_string()];
+            return execute_main(args);
+        }
+
+        // For `stick help -h` and `stick help --help`, print out the help
+        // message for `stick help`
+        "help" if flags.arg_args[0] == "-h" || flags.arg_args[0] == "--help" => {
+            vec!["stick".to_string(), "help".to_string(), "-h".to_string()]
+        }
+
+        // For `stick help foo`, print out the usage message for the specified
+        // subcommand by executing the command with the `-h` flag.
+        "help" => vec!["stick".to_string(), flags.arg_args[0].clone(), "-h".to_string()],
+
+        // For all other invocations, we're of the form `stick foo args...`. We
+        // use the exact environment arguments to preserve tokens like `--` for
+        // example.
+        _ => env::args().skip(1).collect(),
+    };
+
+    match execute_subcommand(&args[0], &args[1..]) {
+        Ok(r) => r,
+        Err(e) => {
+            println!("Error executing command\n{}", e);
+            1
+        }
     }
 }
 
@@ -109,7 +154,7 @@ fn list_commands() -> BTreeSet<String> {
     commands
 }
 
-fn execute_subcommand(cmd: &str, args: &[String]) -> io::Result<()> {
+fn execute_subcommand(cmd: &str, args: &[String]) -> io::Result<i32> {
     let command_exe = format!("stick-{}{}", cmd, env::consts::EXE_SUFFIX);
     let path = search_directories()
         .iter()
@@ -130,8 +175,14 @@ fn execute_subcommand(cmd: &str, args: &[String]) -> io::Result<()> {
         }
     };
 
-    // TODO execute command
-    return Ok(());
+    match process::Command::new(command).args(args).output() {
+        Ok(out) => {
+            let mut stdout: &[u8] = &out.stdout;
+            try!(io::copy(&mut stdout, &mut io::stdout()));
+            Ok(out.status.code().unwrap_or(1))
+        }
+        Err(e) => Err(e),
+    }
 }
 
 #[cfg(unix)]
@@ -151,7 +202,7 @@ fn search_directories() -> Vec<PathBuf> {
     if let Some(val) = env::var_os("HOME") {
         let mut p = PathBuf::from(&val);
         p.push(".stick");
-        p.push("bin");
+        p.push("modules");
         dirs.push(p);
     }
     if let Some(val) = env::var_os("PATH") {
@@ -172,10 +223,8 @@ fn find_closest(cmd: &str) -> Option<String> {
     filtered.get(0).map(|slot| slot.1.clone())
 }
 
-// taken from cargo prj
+// taken from cargo
 pub fn lev_distance(me: &str, t: &str) -> usize {
-    use std::cmp;
-
     if me.is_empty() {
         return t.chars().count();
     }
@@ -185,28 +234,21 @@ pub fn lev_distance(me: &str, t: &str) -> usize {
 
     let mut dcol = (0..t.len() + 1).collect::<Vec<_>>();
     let mut t_last = 0;
-
     for (i, sc) in me.chars().enumerate() {
-
         let mut current = i;
         dcol[0] = current + 1;
-
         for (j, tc) in t.chars().enumerate() {
-
             let next = dcol[j + 1];
-
             if sc == tc {
                 dcol[j + 1] = current;
             } else {
                 dcol[j + 1] = cmp::min(current, next);
                 dcol[j + 1] = cmp::min(dcol[j + 1], dcol[j]) + 1;
             }
-
             current = next;
             t_last = j;
         }
     }
-
     dcol[t_last + 1]
 }
 

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+PROJECT_DIR=`pwd`
+ISSUES_DIR=$PROJECT_DIR/issues
+STATE_DIR=$PROJECT_DIR/state

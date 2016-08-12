@@ -1,0 +1,43 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets
+
+Usage:
+    stick new <ticket-id>
+"
+
+usage() {
+    echo $USAGE
+    exit 1
+}
+
+TOTAL_ARGC=$#
+test $TOTAL_ARGC -gt 0 || usage
+
+while test $# != 1
+do
+    case "$1" in
+    --help|-h)
+        HELP=1
+        ;;
+    --)
+        shift
+        break
+        ;;
+    esac
+    shift
+done
+
+if test $HELP; then
+    usage
+fi
+
+
+TICKET_ID=$1
+SCRIPT=`realpath $0`
+DIR=`dirname $SCRIPT`
+. $DIR/_stick-env
+
+echo "DONE!"
