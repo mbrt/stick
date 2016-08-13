@@ -50,16 +50,20 @@ const MODULE_DIR: &'static str = "/usr/lib/stick-modules";
 
 
 fn main() {
-    let ecode = execute_main(env::args());
+    let ecode = execute_main(env::args(), true);
     process::exit(ecode);
 }
 
-fn execute_main<A, T>(args: A) -> i32
+fn execute_main<A, T>(args: A, options_first: bool) -> i32
     where A: IntoIterator<Item = T>,
           T: AsRef<str>
 {
     let flags: Flags = Docopt::new(USAGE)
-        .and_then(|d| d.argv(args.into_iter()).decode())
+        .unwrap()
+        .options_first(options_first)
+        .argv(args.into_iter())
+        .help(true)
+        .decode()
         .unwrap_or_else(|e| e.exit());
 
     if flags.flag_version {
@@ -81,13 +85,14 @@ fn execute_main<A, T>(args: A) -> i32
         // help message.
         "" | "help" if flags.arg_args.is_empty() => {
             let args = &["stick".to_string(), "-h".to_string()];
-            return execute_main(args);
+            return execute_main(args, false);
         }
 
         // For `stick help -h` and `stick help --help`, print out the help
         // message for `stick help`
         "help" if flags.arg_args[0] == "-h" || flags.arg_args[0] == "--help" => {
-            vec!["stick".to_string(), "help".to_string(), "-h".to_string()]
+            let args = &["stick".to_string(), "-h".to_string()];
+            return execute_main(args, false);
         }
 
         // For `stick help foo`, print out the usage message for the specified
@@ -97,13 +102,13 @@ fn execute_main<A, T>(args: A) -> i32
         // For all other invocations, we're of the form `stick foo args...`. We
         // use the exact environment arguments to preserve tokens like `--` for
         // example.
-        _ => env::args().skip(1).collect(),
+        _ => env::args().collect(),
     };
 
-    match execute_subcommand(&args[0], &args[1..]) {
+    match execute_subcommand(&args[1], &args[2..]) {
         Ok(r) => r,
         Err(e) => {
-            println!("Error executing command\n{}", e);
+            println!("{}", e);
             1
         }
     }

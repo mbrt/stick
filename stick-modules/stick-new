@@ -2,23 +2,26 @@
 set -e
 
 USAGE="\
-Simple Tickets
+Simple Tickets, create a new ticket
 
 Usage:
-    stick new <ticket-id>
+    stick new [options] <ticket-id>
+
+Options:
+    -t, --title TITLE   Set the ticket title
 "
 
 usage() {
-    echo $USAGE
+    echo "$USAGE"
     exit 1
 }
 
 TOTAL_ARGC=$#
 test $TOTAL_ARGC -gt 0 || usage
 
-while test $# != 1
-do
-    case "$1" in
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
     --help|-h)
         HELP=1
         ;;
@@ -30,7 +33,7 @@ do
     shift
 done
 
-if test $HELP; then
+if test $HELP -eq 1; then
     usage
 fi
 
