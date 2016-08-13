@@ -48,13 +48,13 @@ if [ -z $TITLE ]; then
     TITLE="Unnamed ticket"
 fi
 
-if [ -f $FILE ]; then
+if [ -f "$FILE_PATH" ]; then
     die "Ticket already present"
 fi
-cat 
+
 mkdir -p "$ISSUES_DIR" "$STATE_DIR/$DEFAULT_STATE"
 cat >"$FILE_PATH" <<EOF
-$TICKET_ID - $TITLE
+$(echo "$TICKET_ID" | tr '[:lower:]' '[:upper:]') - $TITLE
 ===================
 EOF
 

@@ -1,14 +1,14 @@
 #!/bin/sh
 
 die () {
-    die_with_status 1 "$@"
+    die_with_status 1 $1
 }
 
 die_with_status () {
-    status=$1
+    STATUS=$1
     shift
-    printf >&2 '%s\n' "$*"
-    exit "$status"
+    echo "$*"
+    exit "$STATUS"
 }
 
 usage() {
@@ -17,6 +17,17 @@ usage() {
 }
 
 PROJECT_DIR=`pwd`
+CONFIG_FILE=".stick.cfg"
+
+# fixup the project dir if possible
+while [ ! -f "$PROJECT_DIR/$CONFIG_FILE" ]; do
+    PROJECT_DIR=$PROJECT_DIR/..
+    if [ ! -d "$PROJECT_DIR" ]; then
+        # restore pwd as project dir
+        PROJECT_DIR=`pwd`
+    fi
+done
+
 ISSUES_DIR=$PROJECT_DIR/issues
 STATE_DIR=$PROJECT_DIR/state
 STATE_LINK_BASE=../../issues

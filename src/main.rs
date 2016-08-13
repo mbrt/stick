@@ -12,6 +12,8 @@ use std::process;
 
 use docopt::Docopt;
 
+mod penv;
+
 #[derive(Debug, RustcDecodable)]
 pub struct Flags {
     flag_list: bool,
@@ -47,6 +49,17 @@ See 'stick help <command>' for more information on a specific command.
 ";
 
 const MODULE_DIR: &'static str = "/usr/lib/stick-modules";
+
+macro_rules! each_subcommand{
+    ($mac:ident) => {
+        $mac!(search);
+    }
+}
+
+macro_rules! declare_mod {
+    ($name:ident) => ( pub mod $name; )
+}
+each_subcommand!(declare_mod);
 
 
 fn main() {
@@ -105,6 +118,12 @@ fn execute_main<A, T>(args: A, options_first: bool) -> i32
         _ => env::args().collect(),
     };
 
+    // try to execute the builtin command if present
+    if let Some(r) = try_execute_builtin(&args[1..]) {
+        return r;
+    }
+
+    // search for an exeternal subcommand otherwise
     match execute_subcommand(&args[1], &args[2..]) {
         Ok(r) => r,
         Err(e) => {
@@ -155,8 +174,23 @@ fn list_commands() -> BTreeSet<String> {
         }
     }
 
-    // TODO add here predef commands
+    macro_rules! add_cmd {
+        ($cmd:ident) => ({ commands.insert(stringify!($cmd).replace("_", "-")); })
+    }
+    each_subcommand!(add_cmd);
+
     commands
+}
+
+fn try_execute_builtin(args: &[String]) -> Option<i32> {
+    macro_rules! cmd {
+        ($name:ident) => (if args[0] == stringify!($name).replace("_", "-") {
+            return Some($name::execute(args));
+        })
+    }
+    each_subcommand!(cmd);
+
+    None
 }
 
 fn execute_subcommand(cmd: &str, args: &[String]) -> io::Result<i32> {

@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets, initialize a repository
+
+Usage:
+    stick init <directory>
+"
+SCRIPT=`realpath $0`
+DIR=`dirname $SCRIPT`
+
+. $DIR/_stick-env
+
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
+    --help|-h)
+        HELP=1
+        ;;
+    *)
+        PROJECT_DIR=$1
+        ;;
+    esac
+    shift
+done
+
+if [ $HELP -eq 1 ] || [ -z $PROJECT_DIR ]; then
+    usage
+fi
+
+touch "$PROJECT_DIR/$CONFIG_FILE"
+mkdir -p "$PROJECT_DIR/issues" "$PROJECT_DIR/state"
