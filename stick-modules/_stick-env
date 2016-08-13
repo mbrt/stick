@@ -1,5 +1,25 @@
 #!/bin/sh
 
+die () {
+    die_with_status 1 "$@"
+}
+
+die_with_status () {
+    status=$1
+    shift
+    printf >&2 '%s\n' "$*"
+    exit "$status"
+}
+
+usage() {
+    echo "$USAGE"
+    exit 1
+}
+
 PROJECT_DIR=`pwd`
 ISSUES_DIR=$PROJECT_DIR/issues
 STATE_DIR=$PROJECT_DIR/state
+STATE_LINK_BASE=../../issues
+DEFAULT_STATE=open
+DEFAULT_EXT=.md
+

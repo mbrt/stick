@@ -10,14 +10,10 @@ Usage:
 Options:
     -t, --title TITLE   Set the ticket title
 "
+SCRIPT=`realpath $0`
+DIR=`dirname $SCRIPT`
 
-usage() {
-    echo "$USAGE"
-    exit 1
-}
-
-TOTAL_ARGC=$#
-test $TOTAL_ARGC -gt 0 || usage
+. $DIR/_stick-env
 
 while [ $# -gt 0 ]; do
     ARG=$1
@@ -25,22 +21,44 @@ while [ $# -gt 0 ]; do
     --help|-h)
         HELP=1
         ;;
-    --)
+    --title|-t)
         shift
-        break
+        TITLE=$1
+        ;;
+    --title=*)
+        TITLE=${1#*=}
+        ;;
+    --*)
+        die "unrecognised option: $ARG" ;;
+    *)
+        TICKET_ID=$1
         ;;
     esac
     shift
 done
 
-if test $HELP -eq 1; then
+if [ $HELP -eq 1 ] || [ -z $TICKET_ID ]; then
     usage
 fi
 
 
-TICKET_ID=$1
-SCRIPT=`realpath $0`
-DIR=`dirname $SCRIPT`
-. $DIR/_stick-env
+FILE=$TICKET_ID$DEFAULT_EXT
+FILE_PATH=$ISSUES_DIR/$FILE
+if [ -z $TITLE ]; then
+    TITLE="Unnamed ticket"
+fi
 
-echo "DONE!"
+if [ -f $FILE ]; then
+    die "Ticket already present"
+fi
+cat 
+mkdir -p "$ISSUES_DIR" "$STATE_DIR/$DEFAULT_STATE"
+cat >"$FILE_PATH" <<EOF
+$TICKET_ID - $TITLE
+===================
+EOF
+
+cd "$STATE_DIR/$DEFAULT_STATE"
+ln -s "$STATE_LINK_BASE/$FILE" $FILE
+
+echo "Ticket $TICKET_ID created"
