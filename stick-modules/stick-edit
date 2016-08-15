@@ -39,7 +39,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ $HELP -eq 1 ] || [ -z $TICKET_ID ]; then
+if [ "$HELP" -eq 1 ] || [ -z "$TICKET_ID" ]; then
     usage
 fi
 
@@ -54,4 +54,4 @@ if [ ! -f "$FILE_PATH" ]; then
     die "Invalid ticket number"
 fi
 
-$EDITOR $FILE_PATH
+"$EDITOR" "$FILE_PATH"

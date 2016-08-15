@@ -16,6 +16,7 @@ usage() {
     exit 1
 }
 
+HELP=0
 PROJECT_DIR=`pwd`
 CONFIG_FILE=".stick.cfg"
 

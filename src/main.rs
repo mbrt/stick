@@ -214,14 +214,11 @@ fn execute_subcommand(cmd: &str, args: &[String]) -> io::Result<i32> {
         }
     };
 
-    match process::Command::new(command).args(args).output() {
-        Ok(out) => {
-            let mut stdout: &[u8] = &out.stdout;
-            try!(io::copy(&mut stdout, &mut io::stdout()));
-            Ok(out.status.code().unwrap_or(1))
-        }
-        Err(e) => Err(e),
-    }
+    process::Command::new(command)
+        .args(args)
+        .spawn()
+        .and_then(|mut c| c.wait())
+        .map(|e| e.code().unwrap_or(1))
 }
 
 #[cfg(unix)]
