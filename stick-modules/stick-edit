@@ -1,0 +1,57 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets
+
+Edit the contents of a ticket.
+
+Usage:
+    stick edit [options] <ticket-id>
+
+Options:
+    -e, --editor CMD    Use the specified editor
+"
+SCRIPT=`realpath $0`
+DIR=`dirname $SCRIPT`
+
+. $DIR/_stick-env
+
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
+    --help|-h)
+        HELP=1
+        ;;
+    --editor|-e)
+        shift
+        EDITOR=$1
+        ;;
+    --editor=*)
+        EDITOR=${1#*=}
+        ;;
+    --*)
+        die "unrecognised option: $ARG" ;;
+    *)
+        TICKET_ID=$1
+        ;;
+    esac
+    shift
+done
+
+if [ $HELP -eq 1 ] || [ -z $TICKET_ID ]; then
+    usage
+fi
+
+
+FILE=$TICKET_ID$DEFAULT_EXT
+FILE_PATH=$ISSUES_DIR/$FILE
+if [ -z $EDITOR ]; then
+    EDITOR=/usr/bin/vim
+fi
+
+if [ ! -f "$FILE_PATH" ]; then
+    die "Invalid ticket number"
+fi
+
+$EDITOR $FILE_PATH

@@ -2,7 +2,9 @@
 set -e
 
 USAGE="\
-Simple Tickets, create a new ticket
+Simple Tickets
+
+create a new ticket
 
 Usage:
     stick new [options] <ticket-id>

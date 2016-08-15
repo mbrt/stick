@@ -87,14 +87,19 @@ pub fn execute(args: &[String]) -> i32 {
         }
     }
 
+    let mut need_spacer = false;
     if !title_match.is_empty() {
         println!("Matches in title:");
         for issue in title_match {
             println!("  {}", issue);
         }
+        need_spacer = true;
     }
     if !contents_match.is_empty() {
-        println!("\nMatches in contents:");
+        if need_spacer {
+            println!("");
+        }
+        println!("Matches in contents:");
         for issue in contents_match {
             println!("  {}", issue);
         }

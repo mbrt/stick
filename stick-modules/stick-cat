@@ -1,0 +1,44 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets
+
+Cat the contents of a ticket.
+
+Usage:
+    stick cat <ticket-id>
+"
+SCRIPT=`realpath $0`
+DIR=`dirname $SCRIPT`
+
+. $DIR/_stick-env
+
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
+    --help|-h)
+        HELP=1
+        ;;
+    --*)
+        die "unrecognised option: $ARG" ;;
+    *)
+        TICKET_ID=$1
+        ;;
+    esac
+    shift
+done
+
+if [ $HELP -eq 1 ] || [ -z $TICKET_ID ]; then
+    usage
+fi
+
+
+FILE=$TICKET_ID$DEFAULT_EXT
+FILE_PATH=$ISSUES_DIR/$FILE
+
+if [ ! -f "$FILE_PATH" ]; then
+    die "Invalid ticket number"
+fi
+
+cat $FILE_PATH

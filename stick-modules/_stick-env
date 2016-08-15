@@ -23,8 +23,9 @@ CONFIG_FILE=".stick.cfg"
 while [ ! -f "$PROJECT_DIR/$CONFIG_FILE" ]; do
     PROJECT_DIR=$PROJECT_DIR/..
     if [ ! -d "$PROJECT_DIR" ]; then
-        # restore pwd as project dir
+        # restore pwd as project dir and break
         PROJECT_DIR=`pwd`
+        break;
     fi
 done
 
