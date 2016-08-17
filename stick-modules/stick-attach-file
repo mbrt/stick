@@ -1,0 +1,70 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets
+
+Attach a file to a ticket.
+
+Usage:
+    stick attach-file [options] <ticket-id> <file-path>
+
+Options:
+    -f, --force         Force overwrite of existing attachment
+    -n, --new-name NAM  Use the specified name as attachment name
+"
+SCRIPT=`realpath $0`
+DIR=`dirname $SCRIPT`
+
+. $DIR/_stick-env
+
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
+    --help|-h)
+        HELP=1
+        ;;
+    --new-name|-n)
+        shift
+        ATTACH_NAME=$1
+        ;;
+    --new-name=*)
+        ATTACH_NAME=${1#*=}
+        ;;
+    --force|-f)
+        FORCE=1
+        ;;
+    --*)
+        die "unrecognised option: $ARG" ;;
+    *)
+        TICKET_ID=$1
+        shift
+        ATTACH_PATH=$1
+        ;;
+    esac
+    shift
+done
+
+if [ $HELP -eq 1 ] || [ -z $TICKET_ID ] || [ -z "$ATTACH_PATH" ]; then
+    usage
+fi
+
+FILE=$TICKET_ID$DEFAULT_EXT
+FILE_PATH=$ISSUES_DIR/$FILE
+if [ -z $ATTACH_NAME ]; then
+    ATTACH_NAME="$(basename $ATTACH_PATH)"
+fi
+ATTACH_DEST_PATH="$ATTACH_DIR/$TICKET_ID/$ATTACH_NAME"
+
+if [ ! -f "$FILE_PATH" ]; then
+    die "Invalid ticket number"
+fi
+if [ ! -f "$ATTACH_PATH" ]; then
+    die "Invalid attachment path"
+fi
+if [ -e "$ATTACH_DEST_PATH" ] && [ -z $FORCE ]; then
+    die "An attachment with the same name already exists\nUse --force to overwrite"
+fi
+
+mkdir -p "$(dirname $ATTACH_DEST_PATH)"
+cp "$ATTACH_PATH" "$ATTACH_DEST_PATH"
