@@ -1,0 +1,71 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets
+
+Change the status of a ticket.
+
+Usage:
+    stick move [options] <ticket-id> <new-state>
+
+Options:
+    -f, --force-state   Force a new state to be created if needed
+"
+SCRIPT=`realpath $0`
+DIR=`dirname $SCRIPT`
+
+. $DIR/_stick-env
+
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
+    --help|-h)
+        HELP=1
+        ;;
+    --force-state|-f)
+        FORCE=1
+        ;;
+    --*)
+        die "unrecognised option: $ARG" ;;
+    *)
+        TICKET_ID=$1
+        shift
+        NEW_STATE=$1
+        ;;
+    esac
+    shift
+done
+
+if [ $HELP -eq 1 ] || [ -z $TICKET_ID ] || [ -z "$NEW_STATE" ]; then
+    usage
+fi
+
+FILE=$TICKET_ID$DEFAULT_EXT
+FILE_PATH=$ISSUES_DIR/$FILE
+NEW_STATE_DIR=$STATE_DIR/$NEW_STATE
+
+if [ ! -f "$FILE_PATH" ]; then
+    die "Invalid ticket number"
+fi
+if [ ! -e "$NEW_STATE_DIR" ]; then
+    if [ -z $FORCE ]; then
+        die "The new state does not exists.\nUse --force-state to force the creation."
+    else
+        mkdir -p "$NEW_STATE_DIR"
+    fi
+fi
+
+# cleanup old state
+for STATE in $STATES; do
+    LINK=$STATE/$FILE
+    if [ -f "$LINK" ]; then
+        OLD_STATE=`basename $STATE`
+        rm "$LINK"
+    fi
+done
+
+# move to new state
+cd "$NEW_STATE_DIR"
+ln -s "$STATE_LINK_BASE/$FILE" $FILE
+echo "$TICKET_ID: $OLD_STATE -> $NEW_STATE"
