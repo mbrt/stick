@@ -1,4 +1,5 @@
 extern crate docopt;
+extern crate regex;
 extern crate rustc_serialize;
 
 use std::collections::BTreeSet;
@@ -13,6 +14,7 @@ use std::process;
 use docopt::Docopt;
 
 mod penv;
+mod ticket;
 
 #[derive(Debug, RustcDecodable)]
 pub struct Flags {

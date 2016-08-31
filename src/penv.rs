@@ -1,42 +1,51 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const PRJ_FILE: &'static str = ".stick.cfg";
+const ISSUES_DIR: &'static str = "issues";
+const STATES_DIR: &'static str = "state";
 
-pub fn root() -> Option<PathBuf> {
-    let mut path = PathBuf::from(".");
-    loop {
-        // check if directory
-        if !path.is_dir() {
-            return None;
-        }
-        let mut prjfile = PathBuf::new();
-        prjfile.push(PRJ_FILE);
-        if prjfile.is_file() {
-            break;
-        }
-        path.push("..");
+pub struct Environment {
+    root: PathBuf,
+}
+
+
+impl Environment {
+    pub fn new() -> Option<Self> {
+        Self::from_path(".")
     }
-    Some(path)
-}
 
-pub fn issues_dir() -> Option<PathBuf> {
-    let mut root = match root() {
-        Some(r) => r,
-        None => {
-            return None;
+    pub fn from_path<P: AsRef<Path>>(path: P) -> Option<Self> {
+        let mut path = PathBuf::from(path.as_ref());
+        loop {
+            // check if directory
+            if !path.is_dir() {
+                return None;
+            }
+            let mut prjfile = PathBuf::new();
+            prjfile.push(PRJ_FILE);
+            if prjfile.is_file() {
+                break;
+            }
+            path.push("..");
         }
-    };
-    root.push("issues");
-    Some(root)
-}
+        Some(Environment { root: path })
+    }
 
-pub fn state_dir(name: &str) -> Option<PathBuf> {
-    let mut root = match root() {
-        Some(r) => r,
-        None => {
-            return None;
-        }
-    };
-    root.push(name);
-    Some(root)
+    #[allow(dead_code)]
+    pub fn root(&self) -> &Path {
+        &self.root
+    }
+
+    pub fn issues_dir(&self) -> PathBuf {
+        let mut res = self.root.clone();
+        res.push(ISSUES_DIR);
+        res
+    }
+
+    pub fn state_dir<P: AsRef<Path>>(&self, name: P) -> PathBuf {
+        let mut res = self.root.clone();
+        res.push(STATES_DIR);
+        res.push(name.as_ref());
+        res
+    }
 }

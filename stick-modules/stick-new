@@ -56,7 +56,7 @@ fi
 
 mkdir -p "$ISSUES_DIR" "$STATE_DIR/$DEFAULT_STATE"
 cat >"$FILE_PATH" <<EOF
-$(echo "$TICKET_ID" | tr '[:lower:]' '[:upper:]') - $TITLE
+$(echo "$TICKET_ID" | tr '[:lower:]' '[:upper:]') $TITLE
 ===================
 EOF
 
