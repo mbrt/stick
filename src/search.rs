@@ -1,3 +1,4 @@
+use std::ascii::AsciiExt;
 use std::io::{BufRead, BufReader};
 use std::fs::{self, File};
 use std::path::Path;
@@ -72,11 +73,12 @@ pub fn execute(args: &[String]) -> i32 {
 
         let mut first = true;
         let mut line = String::new();
+        let pattern = flags.arg_pattern.to_ascii_lowercase();
         while let Ok(len) = f.read_line(&mut line) {
             if len == 0 {
                 break;
             }
-            if line.contains(&flags.arg_pattern) {
+            if line.to_ascii_lowercase().contains(&pattern) {
                 let fname = ticket.file_name();
                 let fpath: &Path = fname.as_ref();
                 let name = match fpath.file_stem() {
@@ -102,7 +104,7 @@ pub fn execute(args: &[String]) -> i32 {
     if !title_match.is_empty() {
         println!("Matches in title:");
         for issue in title_match {
-            println!("  {}: {}", issue.0, issue.1.descr);
+            println!("  {}: {}", issue.0, issue.1.descr.trim());
         }
         need_spacer = true;
     }
@@ -112,7 +114,7 @@ pub fn execute(args: &[String]) -> i32 {
         }
         println!("Matches in contents:");
         for issue in contents_match {
-            println!("  {}: {}", issue.0, issue.1);
+            println!("  {}: {}", issue.0, issue.1.trim());
         }
     }
 
