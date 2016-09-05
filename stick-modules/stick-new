@@ -46,7 +46,7 @@ fi
 
 FILE=$TICKET_ID$DEFAULT_EXT
 FILE_PATH=$ISSUES_DIR/$FILE
-if [ -z $TITLE ]; then
+if [ -z "$TITLE" ]; then
     TITLE="Unnamed ticket"
 fi
 
