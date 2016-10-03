@@ -9,10 +9,10 @@ Cat the contents of a ticket.
 Usage:
     stick cat <ticket-id>
 "
-SCRIPT=`realpath $0`
+SCRIPT=`readlink -f $0`
 DIR=`dirname $SCRIPT`
 
-. $DIR/_stick-env
+. $DIR/stick-env.sh
 
 while [ $# -gt 0 ]; do
     ARG=$1
