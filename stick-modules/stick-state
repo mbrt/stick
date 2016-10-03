@@ -1,0 +1,51 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets
+
+Print the state of a ticket
+
+Usage:
+    stick state <ticket-id>
+"
+SCRIPT=`readlink -f $0`
+DIR=`dirname $SCRIPT`
+
+. $DIR/stick-env.sh
+
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
+    --help|-h)
+        HELP=1
+        ;;
+    --*)
+        die "unrecognised option: $ARG" ;;
+    *)
+        TICKET_ID=$1
+        ;;
+    esac
+    shift
+done
+
+if [ $HELP -eq 1 ] || [ -z $TICKET_ID ]; then
+    usage
+fi
+
+FILE=$TICKET_ID$DEFAULT_EXT
+FILE_PATH=$ISSUES_DIR/$FILE
+if [ ! -f "$FILE_PATH" ]; then
+    die "Invalid ticket number"
+fi
+
+for STATE in $STATES; do
+    LINK=$STATE/$FILE
+    if [ -f "$LINK" ]; then
+        echo "$(basename $(dirname $LINK))"
+        exit 0
+    fi
+done
+
+# not found
+exit 1

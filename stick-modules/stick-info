@@ -1,0 +1,78 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets
+
+Print information a ticket.
+
+Usage:
+    stick info [options] <ticket-id>
+
+Options:
+    -b, --oneline       Use one line output
+    --no-state          Don't show the ticket state
+"
+SCRIPT=`readlink -f $0`
+DIR=`dirname $SCRIPT`
+
+. $DIR/stick-env.sh
+
+ONELINE=0
+STATE=1
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
+    --help|-h)
+        HELP=1
+        ;;
+    --oneline|-b)
+        ONELINE=1
+        ;;
+    --no-state)
+        STATE=0
+        ;;
+    --*)
+        die "unrecognised option: $ARG" ;;
+    *)
+        TICKET_ID=$1
+        ;;
+    esac
+    shift
+done
+
+if [ "$HELP" -eq 1 ] || [ -z "$TICKET_ID" ]; then
+    usage
+fi
+
+
+FILE=$TICKET_ID$DEFAULT_EXT
+FILE_PATH=$ISSUES_DIR/$FILE
+
+if [ ! -f "$FILE_PATH" ]; then
+    die "Invalid ticket number"
+fi
+
+FIRST_LINE=$(head -1 "$FILE_PATH")
+TITLE=$(echo $FIRST_LINE | sed "s/$TICKET_ID\s*[:_-]*\s*//I")
+
+# always dump title
+if [ "$STATE" -eq 1 ]; then
+    TICKET_STATE=$(stick state $TICKET_ID || "invalid state")
+    echo "$TICKET_ID [$TICKET_STATE]: $TITLE"
+else
+    echo "$TICKET_ID: $TITLE"
+fi
+
+# dump extended info
+if [ "$ONELINE" -ne 1 ]; then
+    TREE_CMD=$(which tree)
+    if [ ! -x $TREE_CMD ]; then
+        TREE_CMD="ls -l"
+    fi
+    TICKET_ATTACH_DIR=$ATTACH_DIR/$TICKET_ID
+    if [ -d "$TICKET_ATTACH_DIR" ]; then
+        echo "  attachments:"
+        $TREE_CMD "$TICKET_ATTACH_DIR" | sed 's/^/    /'
+    fi
+fi
