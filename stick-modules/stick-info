@@ -66,10 +66,6 @@ fi
 
 # dump extended info
 if [ "$ONELINE" -ne 1 ]; then
-    TREE_CMD=$(which tree)
-    if [ ! -x $TREE_CMD ]; then
-        TREE_CMD="ls -l"
-    fi
     TICKET_ATTACH_DIR=$ATTACH_DIR/$TICKET_ID
     if [ -d "$TICKET_ATTACH_DIR" ]; then
         echo "  attachments:"

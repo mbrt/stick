@@ -38,3 +38,9 @@ STATES=$STATE_DIR/*
 DEFAULT_STATE=open
 DEFAULT_EXT=.md
 
+TREE_CMD=$(which tree)
+if [ -x $TREE_CMD ]; then
+    TREE_CMD="$TREE_CMD -C"
+else
+    TREE_CMD="ls -l --color=always"
+fi
