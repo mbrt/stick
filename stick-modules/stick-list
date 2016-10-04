@@ -44,6 +44,9 @@ if [ -z "$STATE" ]; then
     LIST_DIR=$ISSUES_DIR
 else
     LIST_DIR=$STATE_DIR/$STATE
+    if [ ! -d "$LIST_DIR" ]; then
+        die "unknown state: $STATE"
+    fi
 fi
 
 for FILE in $LIST_DIR/*; do
