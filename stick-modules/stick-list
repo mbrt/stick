@@ -1,0 +1,51 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets
+
+List tickets
+
+Usage:
+    stick list [options]
+
+Options:
+    -s, --state STATE   List only tickets in the specified state
+"
+SCRIPT=`readlink -f $0`
+DIR=`dirname $SCRIPT`
+
+. $DIR/stick-env.sh
+
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
+    --help|-h)
+        HELP=1
+        ;;
+    --state|-s)
+        shift
+        STATE=$1
+        ;;
+    --state=*)
+        STATE=${1#*=}
+        ;;
+    --*)
+        die "unrecognised option: $ARG" ;;
+    esac
+    shift
+done
+
+if [ "$HELP" -eq 1 ]; then
+    usage
+fi
+
+if [ -z "$STATE" ]; then
+    LIST_DIR=$ISSUES_DIR
+else
+    LIST_DIR=$STATE_DIR/$STATE
+fi
+
+for FILE in $LIST_DIR/*; do
+    stick info -b $(basename "$FILE" "$DEFAULT_EXT") || true
+done
