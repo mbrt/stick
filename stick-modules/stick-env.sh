@@ -16,6 +16,10 @@ usage() {
     exit 1
 }
 
+exe_avail() {
+    hash "$1" 2>/dev/null
+}
+
 HELP=0
 PROJECT_DIR=`pwd`
 CONFIG_FILE=".stick.cfg"
@@ -38,9 +42,8 @@ STATES=$STATE_DIR/*
 DEFAULT_STATE=open
 DEFAULT_EXT=.md
 
-TREE_CMD=$(which tree)
-if [ -x $TREE_CMD ]; then
-    TREE_CMD="$TREE_CMD -C"
+if exe_avail tree; then
+    TREE_CMD="tree -C"
 else
     TREE_CMD="ls -l --color=always"
 fi
