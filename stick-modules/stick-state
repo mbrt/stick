@@ -33,16 +33,16 @@ if [ $HELP -eq 1 ] || [ -z $TICKET_ID ]; then
     usage
 fi
 
-FILE=$TICKET_ID$DEFAULT_EXT
-FILE_PATH=$ISSUES_DIR/$FILE
-if [ ! -f "$FILE_PATH" ]; then
+file=$TICKET_ID$DEFAULT_EXT
+file_path=$ISSUES_DIR/$file
+if [ ! -f "$file_path" ]; then
     die "Invalid ticket number"
 fi
 
-for STATE in $STATES; do
-    LINK=$STATE/$FILE
-    if [ -f "$LINK" ]; then
-        echo "$(basename $(dirname $LINK))"
+for state in $STATES; do
+    link=$state/$file
+    if [ -f "$link" ]; then
+        echo "$(basename $(dirname $link))"
         exit 0
     fi
 done

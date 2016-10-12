@@ -47,3 +47,16 @@ if exe_avail tree; then
 else
     TREE_CMD="ls -l --color=always"
 fi
+
+print_ticket_info() {
+    file_path="$1"
+    ticket_state="$2"
+    ticket_id=$(basename "$file_path" "$DEFAULT_EXT")
+    first_line=$(head -1 "$file_path")
+    title=$(echo $first_line | sed "s/$ticket_id\s*[:_-]*\s*//I")
+    if [ -z "$ticket_state" ]; then
+        echo "$ticket_id: $title"
+    else
+        echo "$ticket_id [$ticket_state]: $title"
+    fi
+}

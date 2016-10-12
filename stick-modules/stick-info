@@ -53,15 +53,12 @@ if [ ! -f "$FILE_PATH" ]; then
     die "Invalid ticket number"
 fi
 
-FIRST_LINE=$(head -1 "$FILE_PATH")
-TITLE=$(echo $FIRST_LINE | sed "s/$TICKET_ID\s*[:_-]*\s*//I")
-
 # always dump title
 if [ "$STATE" -eq 1 ]; then
     TICKET_STATE=$(stick state $TICKET_ID || "invalid state")
-    echo "$TICKET_ID [$TICKET_STATE]: $TITLE"
+    print_ticket_info "$FILE_PATH" "$TICKET_STATE"
 else
-    echo "$TICKET_ID: $TITLE"
+    print_ticket_info "$FILE_PATH"
 fi
 
 # dump extended info

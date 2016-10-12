@@ -40,15 +40,20 @@ if [ "$HELP" -eq 1 ]; then
     usage
 fi
 
-if [ -z "$STATE" ]; then
-    LIST_DIR=$ISSUES_DIR
-else
-    LIST_DIR=$STATE_DIR/$STATE
-    if [ ! -d "$LIST_DIR" ]; then
-        die "unknown state: $STATE"
+list_state_issues() {
+    state="$1"
+    if [ ! -d "$STATE_DIR/$state" ]; then
+        die "unknown state: $state"
     fi
-fi
+    for file in $STATE_DIR/$state/*; do
+        print_ticket_info "$file" "$state"
+    done
+}
 
-for FILE in $LIST_DIR/*; do
-    stick info -b $(basename "$FILE" "$DEFAULT_EXT") || true
-done
+if [ -z "$STATE" ]; then
+    for state in $STATE_DIR/*; do
+        list_state_issues $(basename "$state")
+    done
+else
+    list_state_issues "$STATE"
+fi
