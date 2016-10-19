@@ -4,13 +4,14 @@ set -e
 USAGE="\
 Simple Tickets
 
-List tickets
+List tickets, in a specific state or directory.
 
 Usage:
-    stick list [options]
+    stick list [options] [<folder>]
 
 Options:
     -s, --state STATE   List only tickets in the specified state
+    -t, --tag TAG       List only tickets with the specified tag
 "
 SCRIPT=`readlink -f $0`
 DIR=`dirname $SCRIPT`
@@ -30,8 +31,18 @@ while [ $# -gt 0 ]; do
     --state=*)
         STATE=${1#*=}
         ;;
+    --tag|-t)
+        shift
+        TAG=$1
+        ;;
+    --tag=*)
+        TAG=${1#*=}
+        ;;
     --*)
         die "unrecognised option: $ARG" ;;
+    *)
+        DIRECTORY=$1
+        ;;
     esac
     shift
 done
@@ -50,10 +61,36 @@ list_state_issues() {
     done
 }
 
-if [ -z "$STATE" ]; then
-    for state in $STATE_DIR/*; do
-        list_state_issues $(basename "$state")
+# we have a directory: list from there
+if [ ! -z "$DIRECTORY" ]; then
+    if [ ! -d "$DIRECTORY" ]; then
+        die "non existing directory: $DIRECTORY"
+    fi
+    for file in $DIRECTORY/*; do
+        print_ticket_info "$file"
     done
-else
-    list_state_issues "$STATE"
+    exit 0
 fi
+
+# we have a tag: list the issues inside
+if [ ! -z "$TAG" ]; then
+    tag_dir=$TAGS_DIR/$TAG
+    if [ ! -d "$tag_dir" ]; then
+        die "unknown tag: $TAG"
+    fi
+    for file in $tag_dir/*; do
+        print_ticket_info "$file"
+    done
+    exit 0
+fi
+
+# we have a state: list the issues inside
+if [ ! -z "$STATE" ]; then
+    list_state_issues "$STATE"
+    exit 0
+fi
+
+# otherwise try to list all the states
+for state in $STATE_DIR/*; do
+    list_state_issues $(basename "$state")
+done
