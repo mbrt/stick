@@ -61,6 +61,6 @@ $(echo "$TICKET_ID" | tr '[:lower:]' '[:upper:]') $TITLE
 EOF
 
 cd "$STATE_DIR/$DEFAULT_STATE"
-ln -s "$STATE_LINK_BASE/$FILE" $FILE
+ln -s "$TICKET_LINK_BASE/$FILE" $FILE
 
 echo "Ticket $TICKET_ID created"

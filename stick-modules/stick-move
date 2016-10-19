@@ -67,5 +67,5 @@ done
 
 # move to new state
 cd "$NEW_STATE_DIR"
-ln -s "$STATE_LINK_BASE/$FILE" $FILE
+ln -s "$TICKET_LINK_BASE/$FILE" $FILE
 echo "$TICKET_ID: $OLD_STATE -> $NEW_STATE"

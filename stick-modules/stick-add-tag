@@ -1,0 +1,50 @@
+#!/bin/sh
+set -e
+
+USAGE="\
+Simple Tickets
+
+Add a tag to a ticket.
+
+Usage:
+    stick add-tag <ticket-id> <tag-name>
+"
+SCRIPT=`readlink -f $0`
+DIR=`dirname $SCRIPT`
+
+. $DIR/stick-env.sh
+
+while [ $# -gt 0 ]; do
+    ARG=$1
+    case "$ARG" in
+    --help|-h)
+        HELP=1
+        ;;
+    --*)
+        die "unrecognised option: $ARG" ;;
+    *)
+        TICKET_ID=$1
+        shift
+        NEW_TAG=$1
+        ;;
+    esac
+    shift
+done
+
+if [ $HELP -eq 1 ] || [ -z "$TICKET_ID" ] || [ -z "$NEW_TAG" ]; then
+    usage
+fi
+
+
+FILE=$TICKET_ID$DEFAULT_EXT
+FILE_PATH=$ISSUES_DIR/$FILE
+NEW_TAG_DIR=$TAGS_DIR/$NEW_TAG
+
+if [ ! -f "$FILE_PATH" ]; then
+    die "Invalid ticket number"
+fi
+
+# move to new state
+mkdir -p "$NEW_TAG_DIR"
+cd "$NEW_TAG_DIR"
+ln -s "$TICKET_LINK_BASE/$FILE" $FILE
